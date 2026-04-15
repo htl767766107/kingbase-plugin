@@ -1,0 +1,40 @@
+{
+  "name": "kingbase",
+  "version": "1.0.0",
+  "description": "人大金仓数据库 (KingbaseES) 操作技能 - 提供 SQL 查询、数据导出导入、性能优化等数据库操作能力",
+  "author": "htl767766107",
+  "homepage": "https://github.com/htl767766107/kingbase-plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/htl767766107/kingbase-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/htl767766107/kingbase-plugin/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "kingbase",
+    "database",
+    "sql",
+    "人大金仓",
+    "国产数据库"
+  ],
+  "engines": {
+    "claude-code": ">=1.0.0"
+  },
+  "skills": [
+    "skills/kingbase-sql/SKILL.md"
+  ],
+  "commands": [
+    "commands/kingbase.md"
+  ],
+  "marketplace": {
+    "display_name": "Kingbase Plugin",
+    "short_description": "人大金仓数据库操作插件",
+    "icon": "database",
+    "categories": ["database", "developer-tools"],
+    "featured": false
+  }
+}
