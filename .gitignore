@@ -1,0 +1,35 @@
+# Git
+.git/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Plugin specific
+*.skill
+evals/
+*-workspace/
+
+# Sensitive
+.env
+.env.local
+*.pem
+*.key
