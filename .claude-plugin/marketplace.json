@@ -1,6 +1,6 @@
 {
-  "name": "kingbase-plugin",
-  "description": "人大金仓数据库 (KingbaseES) 操作插件",
+  "name": "kingbase",
+  "description": "人大金仓数据库 (KingbaseES) 操作插件 - 提供 SQL 查询、数据导出导入、性能优化等数据库操作能力",
   "owner": {
     "name": "htl767766107",
     "email": "767766107@qq.com"
@@ -9,19 +9,8 @@
     {
       "name": "kingbase",
       "description": "人大金仓数据库 (KingbaseES) 操作技能 - 提供 SQL 查询、数据导出导入、性能优化等数据库操作能力",
-      "version": "1.0.0",
-      "source": "./",
-      "author": {
-        "name": "htl767766107",
-        "email": "767766107@qq.com"
-      },
-      "commands": [
-        {
-          "name": "kingbase",
-          "path": "./commands/kingbase.sh",
-          "description": "人大金仓数据库交互命令"
-        }
-      ]
+      "version": "1.0.1",
+      "source": "./"
     }
   ]
 }

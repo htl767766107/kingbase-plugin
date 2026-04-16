@@ -227,7 +227,7 @@ def main():
     list_parser = subparsers.add_parser('list', help='列出所有表')
     list_parser.add_argument('--host', '-H', default=None, help='数据库主机')
     list_parser.add_argument('--port', '-p', type=int, default=None, help='数据库端口')
-    describe_parser.add_argument('--database', '-d', default=None, help='数据库名')
+    list_parser.add_argument('--database', '-d', default=None, help='数据库名')
     list_parser.add_argument('--user', '-u', default=None, help='用户名')
     list_parser.add_argument('--password', '-P', default=None, help='密码')
 

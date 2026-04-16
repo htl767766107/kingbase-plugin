@@ -1,6 +1,6 @@
 ---
 name: kingbase-sql
-description: 人大金仓数据库 (KingbaseES) 操作技能 - 当用户需要查询数据库、导出数据、查看表结构、分析 SQL 性能或执行任何 Kingbase 数据库操作时触发此技能。包括：SQL 查询、数据导出导入、表结构查看、执行计划分析、批量脚本执行等场景。
+description: 人大金仓数据库 (KingbaseES) 操作技能 - 当用户需要查询数据库、导出数据、查看表结构、分析 SQL 性能或执行任何 Kingbase 数据库操作时触发此技能
 ---
 
 # Kingbase SQL 技能
@@ -9,49 +9,37 @@ description: 人大金仓数据库 (KingbaseES) 操作技能 - 当用户需要�
 
 ## 何时使用此技能
 
-当用户请求涉及以下操作时，使用此技能：
+**Always:**
+- 执行 SQL 查询（SELECT、INSERT、UPDATE、DELETE）
+- 数据导出（CSV、Excel、JSON）
+- 数据导入
+- 查看表结构、索引、约束
+- 分析 SQL 执行计划
+- 执行 SQL 脚本文件
 
-- **SQL 查询**: 执行 SELECT、INSERT、UPDATE、DELETE 等语句
-- **数据导出**: 将查询结果导出为 CSV、Excel、JSON 等格式
-- **数据导入**: 从文件导入数据到数据库表
-- **元数据查询**: 查看表结构、索引、约束、视图等
-- **性能分析**: 使用 EXPLAIN 分析 SQL 执行计划
-- **批量操作**: 执行 SQL 脚本文件
-- **数据备份**: 备份表或整个数据库
+**前置条件：** 确保数据库连接已配置
 
-## 前置检查
+## 核心实践
 
-在开始任何数据库操作前，确认以下信息：
+```
+永远使用参数化查询，不要拼接用户输入到 SQL 中
+```
 
-1. **连接配置**: 检查是否已配置数据库连接
-   - 优先使用环境变量：`KINGBASE_HOST`、`KINGBASE_PORT`、`KINGBASE_DATABASE`、`KINGBASE_USER`、`KINGBASE_PASSWORD`
-   - 如无环境变量，询问用户提供连接信息
-
-2. **依赖检查**: 确认必要的 Python 包已安装
-   ```bash
-   # 检查依赖
-   pip show psycopg2-binary pandas openpyxl
-   ```
-
-3. **连接测试**: 先测试数据库连接是否可用
+**No exceptions:**
+- 不要拼接字符串构建 SQL
+- 不要硬编码密码
+- 不要在日志中打印敏感信息
 
 ## 数据库连接
 
-### 连接方式
+### 连接配置
 
-Kingbase 兼容 PostgreSQL 协议，可使用 psycopg2 连接：
-
-```python
-import psycopg2
-
-conn = psycopg2.connect(
-    host=os.getenv('KINGBASE_HOST', 'localhost'),
-    port=os.getenv('KINGBASE_PORT', '54321'),
-    database=os.getenv('KINGBASE_DATABASE'),
-    user=os.getenv('KINGBASE_USER', 'system'),
-    password=os.getenv('KINGBASE_PASSWORD')
-)
-```
+优先使用环境变量：
+- `KINGBASE_HOST`: 数据库主机 (默认：localhost)
+- `KINGBASE_PORT`: 数据库端口 (默认：54321)
+- `KINGBASE_DATABASE`: 数据库名
+- `KINGBASE_USER`: 用户名
+- `KINGBASE_PASSWORD`: 密码
 
 ### 连接字符串格式
 
@@ -63,138 +51,65 @@ kingbase://username:password@host:port/database
 
 ### 1. 执行 SQL 查询
 
+使用 helper 脚本执行查询：
+
+```bash
+/kingbase query "SELECT * FROM users LIMIT 10"
+```
+
+或使用 Python 辅助函数：
+
 ```python
-import psycopg2
-import pandas as pd
+from kingbase_helper import KingbaseHelper
 
-def execute_query(sql, params=None):
-    """执行 SQL 查询并返回 DataFrame"""
-    conn = get_connection()
-    try:
-        df = pd.read_sql_query(sql, conn, params=params)
-        return df
-    finally:
-        conn.close()
-
-# 示例
-df = execute_query("SELECT * FROM users WHERE status = %s", ('active',))
-print(df.to_string())
+helper = KingbaseHelper()
+helper.connect()
+df, msg = helper.execute_query("SELECT * FROM users WHERE status = %s", ('active',))
+helper.disconnect()
 ```
 
 **注意事项**:
 - 使用参数化查询防止 SQL 注入
 - SELECT 查询使用 `pd.read_sql_query`
-- 非查询语句使用 cursor.execute
+- 非查询语句使用 `execute_command`
 
 ### 2. 导出数据
 
-```python
-def export_to_csv(sql, output_path, params=None):
-    """导出查询结果到 CSV"""
-    df = execute_query(sql, params)
-    df.to_csv(output_path, index=False, encoding='utf-8-sig')
-    return f"已导出 {len(df)} 行数据到 {output_path}"
+```bash
+# 导出 CSV
+/kingbase export "SELECT * FROM orders" --output orders.csv --format csv
 
-def export_to_excel(sql, output_path, params=None):
-    """导出查询结果到 Excel"""
-    df = execute_query(sql, params)
-    df.to_excel(output_path, index=False, sheet_name='Data')
-    return f"已导出 {len(df)} 行数据到 {output_path}"
+# 导出 Excel
+/kingbase export "SELECT * FROM orders" --output orders.xlsx --format excel
+
+# 导出 JSON
+/kingbase export "SELECT * FROM orders" --output orders.json --format json
 ```
 
 ### 3. 查看表结构
 
-```python
-def describe_table(table_name):
-    """查看表结构信息"""
-    sql = """
-        SELECT 
-            column_name AS 列名，
-            data_type AS 数据类型，
-            is_nullable AS 可空，
-            column_default AS 默认值
-        FROM information_schema.columns
-        WHERE table_name = %s
-        ORDER BY ordinal_position
-    """
-    return execute_query(sql, (table_name,))
+```bash
+# 查看表结构
+/kingbase describe users
 
-def get_table_indexes(table_name):
-    """查看表索引信息"""
-    sql = """
-        SELECT 
-            indexname AS 索引名，
-            indexdef AS 索引定义
-        FROM pg_indexes
-        WHERE tablename = %s
-    """
-    return execute_query(sql, (table_name,))
+# 列出所有表
+/kingbase list
 ```
 
 ### 4. 分析执行计划
 
-```python
-def explain_query(sql):
-    """分析 SQL 执行计划"""
-    explain_sql = f"EXPLAIN ANALYZE {sql}"
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        cursor.execute(explain_sql)
-        plan = cursor.fetchall()
-        return '\n'.join([row[0] for row in plan])
-    finally:
-        conn.close()
-```
-
-### 5. 列出所有表
-
-```python
-def list_tables():
-    """列出数据库中所有表"""
-    sql = """
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public'
-        ORDER BY table_name
-    """
-    return execute_query(sql)
-```
-
-### 6. 批量执行 SQL 脚本
-
-```python
-def execute_script_file(script_path):
-    """执行 SQL 脚本文件"""
-    with open(script_path, 'r', encoding='utf-8') as f:
-        sql_script = f.read()
-    
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        # 按分号分割执行多条语句
-        statements = sql_script.split(';')
-        for stmt in statements:
-            stmt = stmt.strip()
-            if stmt:
-                cursor.execute(stmt)
-        conn.commit()
-        return "脚本执行成功"
-    except Exception as e:
-        conn.rollback()
-        return f"执行失败：{e}"
-    finally:
-        conn.close()
+```bash
+/kingbase explain "SELECT * FROM users WHERE status = 'active'"
 ```
 
 ## 安全实践
 
 1. **参数化查询**: 永远不要拼接用户输入到 SQL 中
    ```python
-   # ❌ 错误
+   # 错误
    sql = f"SELECT * FROM users WHERE id = {user_input}"
    
-   # ✅ 正确
+   # 正确
    sql = "SELECT * FROM users WHERE id = %s"
    cursor.execute(sql, (user_input,))
    ```
@@ -234,66 +149,26 @@ def execute_script_file(script_path):
 3. **导出文件**: 提供下载路径
 4. **执行计划**: 格式化展示关键信息
 
-## 示例对话
-
-**用户**: "查询 users 表的前 10 条数据"
-
-**你**: 
-1. 确认连接配置
-2. 执行：`SELECT * FROM users LIMIT 10`
-3. 展示结果表格
-
-**用户**: "把 orders 表导出为 Excel"
-
-**你**:
-1. 执行：`SELECT * FROM orders`
-2. 导出到 `orders_YYYYMMDD.xlsx`
-3. 告知文件路径和行数
-
-**用户**: "分析这条 SQL: SELECT * FROM users WHERE email LIKE '%@gmail.com'"
-
-**你**:
-1. 执行 EXPLAIN ANALYZE
-2. 解释执行计划
-3. 指出潜在性能问题（如全表扫描、索引使用情况）
-
 ## 辅助脚本
 
-如需频繁使用，可创建辅助脚本 `kingbase_helper.py`:
+使用内置的 `kingbase_helper.py` 脚本：
 
-```python
-#!/usr/bin/env python3
-"""Kingbase 数据库辅助工具"""
-import os
-import psycopg2
-import pandas as pd
-from contextlib import contextmanager
+```bash
+# 测试连接
+/kingbase connect -h localhost -p 54321 -d testdb -u system
 
-@contextmanager
-def get_connection():
-    """获取数据库连接上下文管理器"""
-    conn = psycopg2.connect(
-        host=os.getenv('KINGBASE_HOST', 'localhost'),
-        port=os.getenv('KINGBASE_PORT', '54321'),
-        database=os.getenv('KINGBASE_DATABASE'),
-        user=os.getenv('KINGBASE_USER', 'system'),
-        password=os.getenv('KINGBASE_PASSWORD')
-    )
-    try:
-        yield conn
-    finally:
-        conn.close()
+# 执行查询
+/kingbase query "SELECT * FROM users"
 
-def query(sql, params=None):
-    """执行查询返回 DataFrame"""
-    with get_connection() as conn:
-        return pd.read_sql_query(sql, conn, params=params)
+# 查看表结构
+/kingbase describe users
 
-def execute(sql, params=None):
-    """执行非查询语句"""
-    with get_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(sql, params or ())
-            conn.commit()
-            return cursor.rowcount
+# 列出所有表
+/kingbase list
+
+# 分析执行计划
+/kingbase explain "SELECT * FROM users WHERE id = 1"
+
+# 导出查询结果
+/kingbase export "SELECT * FROM users" --output users.csv --format csv
 ```

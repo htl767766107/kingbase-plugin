@@ -12,7 +12,7 @@
 
 | 子命令 | 描述 |
 |--------|------|
-| `connect` | 连接到数据库 |
+| `connect` | 测试数据库连接 |
 | `query` | 执行 SQL 查询 |
 | `export` | 导出查询结果 |
 | `describe` | 查看表结构 |
@@ -29,7 +29,13 @@
 /kingbase query "SELECT * FROM users LIMIT 10"
 
 # 导出 CSV
-/kingbase export "SELECT * FROM orders" --format csv --output orders.csv
+/kingbase export "SELECT * FROM orders" --output orders.csv --format csv
+
+# 导出 Excel
+/kingbase export "SELECT * FROM orders" --output orders.xlsx --format excel
+
+# 导出 JSON
+/kingbase export "SELECT * FROM orders" --output orders.json --format json
 
 # 查看表结构
 /kingbase describe users
@@ -49,10 +55,14 @@
 - `KINGBASE_USER`: 用户名
 - `KINGBASE_PASSWORD`: 密码
 
-## 输出格式
+## export 命令选项
 
-支持以下输出格式：
-- `table`: 表格格式 (默认)
-- `csv`: CSV 格式
-- `json`: JSON 格式
-- `excel`: Excel 格式
+| 选项 | 描述 |
+|------|------|
+| `--output, -o` | 输出文件路径（必填） |
+| `--format, -f` | 导出格式：csv, excel, json（默认：csv） |
+| `--host, -H` | 数据库主机 |
+| `--port, -p` | 数据库端口 |
+| `--database, -d` | 数据库名 |
+| `--user, -u` | 用户名 |
+| `--password, -P` | 密码 |

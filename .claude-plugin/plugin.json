@@ -1,7 +1,7 @@
 {
   "name": "kingbase",
   "description": "人大金仓数据库 (KingbaseES) 操作技能 - 提供 SQL 查询、数据导出导入、性能优化等数据库操作能力",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "htl767766107",
     "email": "767766107@qq.com"
@@ -21,6 +21,12 @@
       "name": "kingbase",
       "path": "./commands/kingbase.sh",
       "description": "人大金仓数据库交互命令"
+    }
+  ],
+  "skills": [
+    {
+      "name": "kingbase-sql",
+      "path": "./skills/kingbase-sql"
     }
   ]
 }
