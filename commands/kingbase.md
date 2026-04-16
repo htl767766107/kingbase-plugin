@@ -1,3 +1,8 @@
+---
+name: kingbase
+description: 人大金仓数据库交互命令 - 提供 SQL 查询、数据导出、表结构查看等数据库操作能力
+---
+
 # kingbase
 
 人大金仓数据库交互命令。
