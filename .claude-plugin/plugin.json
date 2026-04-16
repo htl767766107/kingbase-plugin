@@ -2,11 +2,18 @@
   "name": "kingbase",
   "description": "人大金仓数据库 (KingbaseES) 操作技能 - 提供 SQL 查询、数据导出导入、性能优化等数据库操作能力",
   "version": "1.0.0",
-  "author": "User",
-  "skills": [
-    "skills/kingbase-sql/SKILL.md"
-  ],
-  "commands": [
-    "commands/kingbase.md"
+  "author": {
+    "name": "htl767766107",
+    "email": "767766107@qq.com"
+  },
+  "homepage": "https://github.com/htl767766107/kingbase-plugin",
+  "repository": "https://github.com/htl767766107/kingbase-plugin",
+  "license": "MIT",
+  "keywords": [
+    "kingbase",
+    "database",
+    "sql",
+    "人大金仓",
+    "国产数据库"
   ]
 }
