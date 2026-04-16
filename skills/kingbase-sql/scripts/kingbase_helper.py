@@ -29,13 +29,14 @@ except ImportError:
 class KingbaseHelper:
     """Kingbase 数据库辅助类"""
 
-    def __init__(self, host=None, port=None, database=None, user=None, password=None):
+    def __init__(self, host=None, port=None, database=None, user=None, password=None, schema=None):
         """初始化数据库连接参数"""
         self.host = host or os.getenv('KINGBASE_HOST', 'localhost')
         self.port = int(port or os.getenv('KINGBASE_PORT', '54321'))
         self.database = database or os.getenv('KINGBASE_DATABASE')
         self.user = user or os.getenv('KINGBASE_USER', 'system')
         self.password = password or os.getenv('KINGBASE_PASSWORD')
+        self.schema = schema or os.getenv('KINGBASE_SCHEMA', 'public')
         self.conn = None
 
     def connect(self):
@@ -48,6 +49,10 @@ class KingbaseHelper:
                 user=self.user,
                 password=self.password
             )
+            # 设置 search_path 以动态指定 schema
+            cursor = self.conn.cursor()
+            cursor.execute(f"SET search_path TO {self.schema}")
+            cursor.close()
             return True, "连接成功"
         except psycopg2.OperationalError as e:
             return False, f"连接失败：{str(e)}"
@@ -115,15 +120,16 @@ class KingbaseHelper:
         """
         return self.execute_query(sql, (table_name,))
 
-    def list_tables(self):
+    def list_tables(self, schema=None):
         """列出数据库中所有表"""
+        schema = schema or self.schema
         sql = """
-            SELECT table_name AS "表名"
-            FROM information_schema.tables
-            WHERE table_schema = 'public'
-            ORDER BY table_name
+            SELECT tablename AS "表名"
+            FROM pg_tables
+            WHERE schemaname = %s
+            ORDER BY tablename
         """
-        return self.execute_query(sql)
+        return self.execute_query(sql, (schema,))
 
     def explain_query(self, sql):
         """分析 SQL 执行计划"""
@@ -204,6 +210,7 @@ def main():
     connect_parser.add_argument('--database', '-d', default=None, help='数据库名')
     connect_parser.add_argument('--user', '-u', default=None, help='用户名')
     connect_parser.add_argument('--password', '-P', default=None, help='密码')
+    connect_parser.add_argument('--schema', '-s', default=None, help='数据库 schema')
 
     # query 命令
     query_parser = subparsers.add_parser('query', help='执行 SQL 查询')
@@ -213,6 +220,7 @@ def main():
     query_parser.add_argument('--database', '-d', default=None, help='数据库名')
     query_parser.add_argument('--user', '-u', default=None, help='用户名')
     query_parser.add_argument('--password', '-P', default=None, help='密码')
+    query_parser.add_argument('--schema', '-s', default=None, help='数据库 schema')
 
     # describe 命令
     describe_parser = subparsers.add_parser('describe', help='查看表结构')
@@ -222,6 +230,7 @@ def main():
     describe_parser.add_argument('--database', '-d', default=None, help='数据库名')
     describe_parser.add_argument('--user', '-u', default=None, help='用户名')
     describe_parser.add_argument('--password', '-P', default=None, help='密码')
+    describe_parser.add_argument('--schema', '-s', default=None, help='数据库 schema')
 
     # list 命令
     list_parser = subparsers.add_parser('list', help='列出所有表')
@@ -230,6 +239,7 @@ def main():
     list_parser.add_argument('--database', '-d', default=None, help='数据库名')
     list_parser.add_argument('--user', '-u', default=None, help='用户名')
     list_parser.add_argument('--password', '-P', default=None, help='密码')
+    list_parser.add_argument('--schema', '-s', default=None, help='数据库 schema')
 
     # export 命令
     export_parser = subparsers.add_parser('export', help='导出查询结果')
@@ -242,6 +252,7 @@ def main():
     export_parser.add_argument('--database', '-d', default=None, help='数据库名')
     export_parser.add_argument('--user', '-u', default=None, help='用户名')
     export_parser.add_argument('--password', '-P', default=None, help='密码')
+    export_parser.add_argument('--schema', '-s', default=None, help='数据库 schema')
 
     # explain 命令
     explain_parser = subparsers.add_parser('explain', help='分析 SQL 执行计划')
@@ -251,6 +262,7 @@ def main():
     explain_parser.add_argument('--database', '-d', default=None, help='数据库名')
     explain_parser.add_argument('--user', '-u', default=None, help='用户名')
     explain_parser.add_argument('--password', '-P', default=None, help='密码')
+    explain_parser.add_argument('--schema', '-s', default=None, help='数据库 schema')
 
     args = parser.parse_args()
 
@@ -264,7 +276,8 @@ def main():
         port=args.port if hasattr(args, 'port') else None,
         database=args.database if hasattr(args, 'database') else None,
         user=args.user if hasattr(args, 'user') else None,
-        password=args.password if hasattr(args, 'password') else None
+        password=args.password if hasattr(args, 'password') else None,
+        schema=args.schema if hasattr(args, 'schema') else None
     )
 
     # 执行命令
@@ -314,7 +327,7 @@ def main():
             print(msg)
             sys.exit(1)
 
-        df, msg = helper.list_tables()
+        df, msg = helper.list_tables(schema=args.schema)
         if df is None:
             print(msg)
             sys.exit(1)
