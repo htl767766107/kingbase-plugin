@@ -15,18 +15,5 @@
     "sql",
     "人大金仓",
     "国产数据库"
-  ],
-  "commands": [
-    {
-      "name": "kingbase",
-      "path": "./commands/kingbase.sh",
-      "description": "人大金仓数据库交互命令"
-    }
-  ],
-  "skills": [
-    {
-      "name": "kingbase-sql",
-      "path": "./skills/kingbase-sql"
-    }
   ]
 }
