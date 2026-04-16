@@ -14,7 +14,14 @@
       "author": {
         "name": "htl767766107",
         "email": "767766107@qq.com"
-      }
+      },
+      "commands": [
+        {
+          "name": "kingbase",
+          "path": "./commands/kingbase.sh",
+          "description": "人大金仓数据库交互命令"
+        }
+      ]
     }
   ]
 }
